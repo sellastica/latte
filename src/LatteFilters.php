@@ -5,23 +5,20 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 {
 	/** @var \Nette\Http\Request */
 	private $request;
-	/** @var \Sellastica\Currency\Model\CurrencyAccessor */
-	private $currencyAccessor;
 	/** @var \Sellastica\Localization\Model\LocalizationAccessor */
 	private $localizationAccessor;
 	/** @var \Sellastica\Project\Model\SettingsAccessor */
 	private $settingsAccessor;
 	/** @var \Nette\Localization\ITranslator */
 	private $translator;
-	/** @var \Sellastica\Thumbnailer\Thumbnailer */
-	private $thumbnailer;
 	/** @var \Sellastica\Thumbnailer\ThumbnailerAccessor */
 	private $thumbnailerAccessor;
+	/** @var \Sellastica\Thumbnailer\Thumbnailer */
+	private $thumbnailer;
 
 
 	/**
 	 * @param \Nette\Http\Request $request
-	 * @param \Sellastica\Currency\Model\CurrencyAccessor $currencyAccessor
 	 * @param \Sellastica\Localization\Model\LocalizationAccessor $localizationAccessor
 	 * @param \Sellastica\Project\Model\SettingsAccessor $settingsAccessor
 	 * @param \Nette\Localization\ITranslator $translator
@@ -29,7 +26,6 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 	 */
 	public function __construct(
 		\Nette\Http\Request $request,
-		\Sellastica\Currency\Model\CurrencyAccessor $currencyAccessor,
 		\Sellastica\Localization\Model\LocalizationAccessor $localizationAccessor,
 		\Sellastica\Project\Model\SettingsAccessor $settingsAccessor,
 		\Nette\Localization\ITranslator $translator,
@@ -37,7 +33,6 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 	)
 	{
 		$this->request = $request;
-		$this->currencyAccessor = $currencyAccessor;
 		$this->localizationAccessor = $localizationAccessor;
 		$this->settingsAccessor = $settingsAccessor;
 		$this->translator = $translator;
@@ -144,11 +139,13 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 			$number = $number->getDefaultPrice();
 		}
 
-		if (isset($currency)) {
-			return $currency->format($number, $trimIntegers, $symbol);
+		if (!isset($currency)) {
+			$currency = \Sellastica\Localization\Model\Currency::from(
+				$this->settingsAccessor->getSetting('project.defaultCurrencyCode')
+			);
 		}
 
-		return $this->currencyAccessor->getDefaultCurrency()->format($number, $trimIntegers, $symbol);
+		return $currency->format($number, $trimIntegers, $symbol);
 	}
 
 	/**
