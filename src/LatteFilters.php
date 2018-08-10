@@ -78,6 +78,9 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 			'money' => function ($number, $currency = null) {
 				return $this->money($number, $currency);
 			},
+			'money_and_tax' => function(\Sellastica\Price\Price $price) {
+				return $this->money_and_tax($price);
+			},
 			'price' => function ($number, $currency = null) {
 				return $this->price($number, $currency);
 			},
@@ -136,6 +139,7 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 	)
 	{
 		if ($number instanceof \Sellastica\Price\Price) {
+			$currency = $number->getCurrency();
 			$number = $number->getDefaultPrice();
 		}
 
@@ -156,6 +160,18 @@ class LatteFilters implements \Contributte\Latte\Filters\FiltersProvider
 	private function money($number, \Sellastica\Localization\Model\Currency $currency = null)
 	{
 		return $this->moneyFormat($number, $currency);
+	}
+
+	/**
+	 * @param \Sellastica\Price\Price $price
+	 * @return null|string
+	 */
+	private function money_and_tax(\Sellastica\Price\Price $price): ?string
+	{
+		$formattedPrice = $this->moneyFormat($price);
+		return $price->defaultPriceIncludesTax()
+			? $this->translator->translate('system.general.price_with_tax', null, ['price' => $formattedPrice])
+			: $this->translator->translate('system.general.price_without_tax', null, ['price' => $formattedPrice]);
 	}
 
 	/**
